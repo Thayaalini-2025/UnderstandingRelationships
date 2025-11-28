@@ -1,7 +1,7 @@
 
-  # Preliminary Prototype Prompts (Copy)
+  # Understanding Relationships and Boundaries
 
-  This is a code bundle for Preliminary Prototype Prompts (Copy). The original project is available at https://www.figma.com/design/aXoHQFC8xjL4cUdvST85AD/Preliminary-Prototype-Prompts--Copy-.
+  This repository contains the Understanding Relationships and Boundaries prototype. The original design sources were created in Figma — check the original design files if needed.
 
   ## Running the code
 
