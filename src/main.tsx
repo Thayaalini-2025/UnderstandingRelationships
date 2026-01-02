@@ -1,7 +1,13 @@
+import { createRoot } from "react-dom/client";
+import App from "./App.tsx";
+import "./index.css";
+// 1. Import the Provider
+import { LanguageProvider } from './context/LanguageContext'; 
 
-  import { createRoot } from "react-dom/client";
-  import App from "./App.tsx";
-  import "./index.css";
-
-  createRoot(document.getElementById("root")!).render(<App />);
+createRoot(document.getElementById("root")!).render(
+  // 2. Wrap App inside LanguageProvider
+  <LanguageProvider>
+    <App />
+  </LanguageProvider>
+);
   

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Mic, Camera, Volume2, Bell, Check, X, AlertCircle } from 'lucide-react';
 import { requestAllPermissions, checkPermissionStatus, type PermissionType } from '../utils/permissions';
+import { useTranslation } from '../utils/translations';
 
 interface PermissionRequestProps {
   onComplete: (granted: boolean) => void;
@@ -8,6 +9,7 @@ interface PermissionRequestProps {
 }
 
 export function PermissionRequest({ onComplete, onSkip }: PermissionRequestProps) {
+  const t = useTranslation();
   const [permissions, setPermissions] = useState<Record<PermissionType, { status: 'pending' | 'granted' | 'denied' | 'error', message?: string }>>({
     audio: { status: 'pending' },
     microphone: { status: 'pending' },
@@ -95,6 +97,25 @@ export function PermissionRequest({ onComplete, onSkip }: PermissionRequestProps
     }
   };
 
+  const getPermissionLabel = (type: PermissionType) => {
+    switch (type) {
+      case 'audio': return t.perm_audio;
+      case 'microphone': return t.perm_mic;
+      case 'camera': return t.perm_camera;
+      case 'notifications': return t.perm_notifications;
+      default: return type;
+    }
+  };
+
+  const getStatusLabel = (status: string, message?: string) => {
+    switch (status) {
+      case 'granted': return t.status_granted;
+      case 'denied': return t.status_denied;
+      case 'error': return message || t.status_error;
+      default: return t.status_pending;
+    }
+  };
+
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'granted': return <Check className="w-5 h-5 text-green-500" />;
@@ -112,9 +133,9 @@ export function PermissionRequest({ onComplete, onSkip }: PermissionRequestProps
       <div className="max-w-2xl w-full bg-white rounded-3xl shadow-2xl p-8 md:p-12">
         <div className="text-center mb-8">
           <div className="text-6xl mb-4">🔐</div>
-          <h2 className="text-3xl font-bold text-gray-800 mb-2">Enable Features</h2>
+          <h2 className="text-3xl font-bold text-gray-800 mb-2">{t.enableFeatures}</h2>
           <p className="text-gray-600">
-            We need your permission to enable audio, voice, and other interactive features
+            {t.permissionDesc}
           </p>
         </div>
 
@@ -152,15 +173,9 @@ export function PermissionRequest({ onComplete, onSkip }: PermissionRequestProps
                     }`} />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-lg capitalize">{type}</h3>
+                    <h3 className="font-semibold text-lg capitalize">{getPermissionLabel(type)}</h3>
                     <p className="text-sm text-gray-600">
-                      {status === 'granted'
-                        ? 'Permission granted'
-                        : status === 'denied'
-                        ? 'Permission denied'
-                        : status === 'error'
-                        ? permission.message || 'Error occurred'
-                        : 'Waiting for permission'}
+                      {getStatusLabel(status, permission.message)}
                     </p>
                   </div>
                 </div>
@@ -169,18 +184,6 @@ export function PermissionRequest({ onComplete, onSkip }: PermissionRequestProps
             );
           })}
         </div>
-
-        {showDetails && (
-          <div className="bg-blue-50 border-2 border-blue-200 rounded-2xl p-6 mb-6">
-            <h4 className="font-semibold text-blue-800 mb-3">Why we need these permissions:</h4>
-            <ul className="space-y-2 text-sm text-blue-700">
-              <li>• <strong>Audio:</strong> For sound effects and feedback in games</li>
-              <li>• <strong>Microphone:</strong> For voice interactions and speech recognition (future features)</li>
-              <li>• <strong>Camera:</strong> For interactive activities and photo features (future features)</li>
-              <li>• <strong>Notifications:</strong> For reminders and achievements (optional)</li>
-            </ul>
-          </div>
-        )}
 
         <div className="flex flex-col sm:flex-row gap-4">
           <button
@@ -192,7 +195,7 @@ export function PermissionRequest({ onComplete, onSkip }: PermissionRequestProps
                 : 'bg-purple-500 text-white hover:bg-purple-600 hover:scale-105'
             }`}
           >
-            {isRequesting ? 'Requesting...' : allGranted ? 'All Permissions Granted!' : 'Request Permissions'}
+            {isRequesting ? t.requesting : allGranted ? t.permissionsGranted : t.requestPermissions}
           </button>
           
           {onSkip && (
@@ -200,17 +203,10 @@ export function PermissionRequest({ onComplete, onSkip }: PermissionRequestProps
               onClick={() => onComplete(hasAnyGranted)}
               className="py-4 px-6 rounded-2xl text-lg font-semibold border-2 border-gray-300 text-gray-700 hover:bg-gray-50 transition-all"
             >
-              {hasAnyGranted ? 'Continue' : 'Skip for Now'}
+              {hasAnyGranted ? t.continue : t.skipForNow}
             </button>
           )}
         </div>
-
-        <button
-          onClick={() => setShowDetails(!showDetails)}
-          className="mt-4 text-sm text-gray-500 hover:text-gray-700 underline"
-        >
-          {showDetails ? 'Hide' : 'Show'} details
-        </button>
       </div>
     </div>
   );

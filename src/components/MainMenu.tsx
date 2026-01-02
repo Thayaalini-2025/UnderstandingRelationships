@@ -1,47 +1,50 @@
 import { Settings } from 'lucide-react';
+import { useTranslation } from '../utils/translations';
 
 interface MainMenuProps {
   onNavigate: (screen: string) => void;
 }
 
-const modules = [
-  {
-    id: 'module1',
-    title: 'Relationship Rainbow',
-    description: 'Learn about different people in your life',
-    emoji: '🌈',
-    color: 'from-purple-400 to-pink-400',
-    borderColor: 'border-purple-400',
-    hoverColor: 'hover:from-purple-500 hover:to-pink-500'
-  },
-  {
-    id: 'module2',
-    title: 'Safety Decisions',
-    description: 'Learn to stay safe and make good choices',
-    emoji: '🛡️',
-    color: 'from-green-400 to-blue-400',
-    borderColor: 'border-green-400',
-    hoverColor: 'hover:from-green-500 hover:to-blue-500'
-  },
-  {
-    id: 'module3',
-    title: 'My Body Space',
-    description: 'Learn about personal space and boundaries',
-    emoji: '🫧',
-    color: 'from-orange-400 to-yellow-400',
-    borderColor: 'border-orange-400',
-    hoverColor: 'hover:from-orange-500 hover:to-yellow-500'
-  },
-];
-
 export function MainMenu({ onNavigate }: MainMenuProps) {
+  const t = useTranslation();
+
+  const modules = [
+    {
+      id: 'module1',
+      title: t.module1Title,
+      description: t.module1Desc,
+      emoji: '🌈',
+      color: 'from-purple-400 to-pink-400',
+      borderColor: 'border-purple-400',
+      hoverColor: 'hover:from-purple-500 hover:to-pink-500'
+    },
+    {
+      id: 'module2',
+      title: t.module2Title,
+      description: t.module2Desc,
+      emoji: '🛡️',
+      color: 'from-green-400 to-blue-400',
+      borderColor: 'border-green-400',
+      hoverColor: 'hover:from-green-500 hover:to-blue-500'
+    },
+    {
+      id: 'module3',
+      title: t.module3Title,
+      description: t.module3Desc,
+      emoji: '🫧',
+      color: 'from-orange-400 to-yellow-400',
+      borderColor: 'border-orange-400',
+      hoverColor: 'hover:from-orange-500 hover:to-yellow-500'
+    },
+  ];
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 via-purple-50 to-pink-50 p-4 md:p-8 flex items-center justify-center relative">
       {/* Parent Settings Button */}
       <button
         className="absolute top-6 right-6 p-4 bg-white/80 backdrop-blur-sm rounded-full shadow-lg hover:shadow-xl transition-all hover:scale-110 group"
         onClick={() => onNavigate('parentSettings')}
-        title="Parent Settings"
+        title={t.parentSettings}
       >
         <Settings className="w-7 h-7 text-gray-600 group-hover:rotate-90 transition-transform duration-300" />
       </button>
@@ -50,11 +53,11 @@ export function MainMenu({ onNavigate }: MainMenuProps) {
         {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-6xl mb-4" style={{ fontFamily: 'Comic Sans MS, cursive' }}>
-            Understanding Relationships
+            {t.appTitle}
           </h1>
           <div className="text-7xl mb-6">👦👧🌟</div>
-          <p className="text-2xl text-gray-700 mb-2">Learning About Boundaries & Safety</p>
-          <p className="text-xl text-gray-600">Choose a module to start learning!</p>
+          <p className="text-2xl text-gray-700 mb-2">{t.subtitle}</p>
+          <p className="text-xl text-gray-600">{t.chooseModule}</p>
         </div>
 
         {/* Module Buttons */}
@@ -89,10 +92,7 @@ export function MainMenu({ onNavigate }: MainMenuProps) {
         {/* Footer Info */}
         <div className="bg-white/60 backdrop-blur-sm rounded-3xl p-6 text-center shadow-lg border-4 border-white">
           <p className="text-gray-700 mb-2">
-            <strong>🎮 How to Play:</strong> Tap a colorful module above to start!
-          </p>
-          <p className="text-gray-600 text-sm">
-            Each module has fun games to help you learn about relationships, safety, and boundaries!
+            <strong>🎮 {t.howToPlay}:</strong> {t.howToPlayDesc}
           </p>
         </div>
       </div>

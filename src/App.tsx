@@ -11,7 +11,8 @@ import { SpaceBubble } from './components/SpaceBubble';
 import { WhatWouldYouDo } from './components/WhatWouldYouDo';
 import { PermissionRequest } from './components/PermissionRequest';
 import { ParentSettings } from './components/ParentSettings';
-import { LanguageProvider } from './context/LanguageContext';
+import { LanguageSelector } from './components/LanguageSelector';
+import { useTranslation } from './utils/translations';
 
 type Screen = 'main' | 'module1' | 'module2' | 'module3' | 
   'circles' | 'safecontact' | 'privatePublic' | 'scenarioQuiz' | 'safetyScenarios' | 'infoVault' |
@@ -20,16 +21,32 @@ type Screen = 'main' | 'module1' | 'module2' | 'module3' |
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState<Screen>('main');
   const [showPermissions, setShowPermissions] = useState(false);
+  const [showLanguageSelect, setShowLanguageSelect] = useState(false);
+  const t = useTranslation();
 
   useEffect(() => {
-    // Check if we've already shown permissions
-    const hasShownPermissions = localStorage.getItem('permissionsShown') === 'true';
+    // 1. Check if language has been set up initially
+    const isLanguageSetup = localStorage.getItem('languageSetupComplete') === 'true';
     
-    // Show permission request on first load if not already shown
+    if (!isLanguageSetup) {
+      setShowLanguageSelect(true);
+    } else {
+      // 2. If language is set, check if permissions have been shown
+      const hasShownPermissions = localStorage.getItem('permissionsShown') === 'true';
+      if (!hasShownPermissions) {
+        setShowPermissions(true);
+      }
+    }
+  }, []);
+
+  const handleLanguageComplete = () => {
+    setShowLanguageSelect(false);
+    // After language is selected, check if we need to show permissions
+    const hasShownPermissions = localStorage.getItem('permissionsShown') === 'true';
     if (!hasShownPermissions) {
       setShowPermissions(true);
     }
-  }, []);
+  };
 
   const handlePermissionComplete = (granted: boolean) => {
     localStorage.setItem('permissionsShown', 'true');
@@ -51,14 +68,17 @@ export default function App() {
     }
   };
 
+  // Screen Rendering Logic
+  if (showLanguageSelect) {
+    return <LanguageSelector onComplete={handleLanguageComplete} />;
+  }
+
   if (showPermissions) {
     return (
-      <LanguageProvider>
-        <PermissionRequest 
-          onComplete={handlePermissionComplete}
-          onSkip={() => handlePermissionComplete(false)}
-        />
-      </LanguageProvider>
+      <PermissionRequest 
+        onComplete={handlePermissionComplete}
+        onSkip={() => handlePermissionComplete(false)}
+      />
     );
   }
 
@@ -67,8 +87,7 @@ export default function App() {
   };
 
   return (
-    <LanguageProvider>
-      <div className="min-h-screen bg-gradient-to-b from-blue-50 to-purple-50">
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-purple-50">
       {currentScreen === 'main' && (
         <MainMenu onNavigate={handleNavigate} />
       )}
@@ -76,11 +95,11 @@ export default function App() {
       {currentScreen === 'module1' && (
         <ModuleMenu 
           moduleNumber={1}
-          title="Relationship Circles and Safety"
+          title={t.module1FullTitle}
           color="purple"
           games={[
-            { id: 'circles', title: 'Circle Sorter', description: 'Sort people by relationship', icon: '👥' },
-            { id: 'safecontact', title: 'Safe Touch', description: 'Learn about safe contact', icon: '🤝' }
+            { id: 'circles', title: t.game_circles, description: t.game_circles_desc, icon: '👥' },
+            { id: 'safecontact', title: t.game_safecontact, description: t.game_safecontact_desc, icon: '🤝' }
           ]}
           onNavigate={handleNavigate}
           onBack={() => setCurrentScreen('main')}
@@ -90,11 +109,11 @@ export default function App() {
       {currentScreen === 'module2' && (
         <ModuleMenu 
           moduleNumber={2}
-          title="Private vs Public Behaviour"
+          title={t.module2FullTitle}
           color="green"
           games={[
-            { id: 'safetyScenarios', title: 'Safe or Unsafe?', description: 'Learn to spot safe situations', icon: '🛡️' },
-            { id: 'infoVault', title: 'The Info Vault', description: 'Learn what to share', icon: '🔒' }
+            { id: 'safetyScenarios', title: t.game_safetyScenarios, description: t.game_safetyScenarios_desc, icon: '🛡️' },
+            { id: 'infoVault', title: t.game_infoVault, description: t.game_infoVault_desc, icon: '🔒' }
           ]}
           onNavigate={handleNavigate}
           onBack={() => setCurrentScreen('main')}
@@ -104,11 +123,11 @@ export default function App() {
       {currentScreen === 'module3' && (
         <ModuleMenu 
           moduleNumber={3}
-          title="Respect and Assertiveness"
+          title={t.module3FullTitle}
           color="orange"
           games={[
-            { id: 'spaceBubble', title: 'Respect Space', description: 'Learn about boundaries', icon: '🛡️' },
-            { id: 'whatWouldYouDo', title: 'What Would You Do?', description: 'Group scenarios', icon: '👫' }
+            { id: 'spaceBubble', title: t.game_spaceBubble, description: t.game_spaceBubble_desc, icon: '🛡️' },
+            { id: 'whatWouldYouDo', title: t.game_whatWouldYouDo, description: t.game_whatWouldYouDo_desc, icon: '👫' }
           ]}
           onNavigate={handleNavigate}
           onBack={() => setCurrentScreen('main')}
@@ -151,6 +170,5 @@ export default function App() {
         <ParentSettings onBack={() => setCurrentScreen('main')} />
       )}
     </div>
-    </LanguageProvider>
   );
 }
