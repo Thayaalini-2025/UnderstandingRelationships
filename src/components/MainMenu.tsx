@@ -1,11 +1,12 @@
-import { Settings } from 'lucide-react';
+import { Settings, HelpCircle } from 'lucide-react';
 import { useTranslation } from '../utils/translations';
 
 interface MainMenuProps {
   onNavigate: (screen: string) => void;
+  onShowTutorial?: () => void;
 }
 
-export function MainMenu({ onNavigate }: MainMenuProps) {
+export function MainMenu({ onNavigate, onShowTutorial }: MainMenuProps) {
   const t = useTranslation();
 
   const modules = [
@@ -40,6 +41,17 @@ export function MainMenu({ onNavigate }: MainMenuProps) {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 via-purple-50 to-pink-50 p-4 md:p-8 flex items-center justify-center relative">
+      {/* Tutorial Help Button */}
+      {onShowTutorial && (
+        <button
+          className="absolute top-6 left-6 p-4 bg-white/80 backdrop-blur-sm rounded-full shadow-lg hover:shadow-xl transition-all hover:scale-110 group"
+          onClick={onShowTutorial}
+          title={t.tutorialHelp}
+        >
+          <HelpCircle className="w-7 h-7 text-purple-500 group-hover:text-purple-600 transition-colors" />
+        </button>
+      )}
+
       {/* Parent Settings Button */}
       <button
         className="absolute top-6 right-6 p-4 bg-white/80 backdrop-blur-sm rounded-full shadow-lg hover:shadow-xl transition-all hover:scale-110 group"

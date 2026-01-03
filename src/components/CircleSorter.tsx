@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowLeft, Check, Volume2, User, Users, Heart, Handshake, Shield, AlertCircle, Star, Home, RotateCcw } from 'lucide-react';
+import { ArrowLeft, Check, Volume2, User, Users, Heart, Handshake, Shield, AlertCircle, Star, Home, RotateCcw, PlayCircle } from 'lucide-react';
 import { Confetti } from './Confetti';
 import { getCharacterImage } from '../utils/imageUtils';
 import { useLanguage, Language } from '../context/LanguageContext';
@@ -120,13 +120,13 @@ const circles: Circle[] = [
   },
 ];
 
-type GameState = 'setup' | 'playing' | 'feedback' | 'complete';
+type GameState = 'intro' | 'playing' | 'feedback' | 'complete';
 
 export function CircleSorter({ onBack }: CircleSorterProps) {
   const { language } = useLanguage();
   const t = useTranslation();
-  const [gameState, setGameState] = useState<GameState>('setup');
-  const [sessionLength, setSessionLength] = useState<number>(10);
+  const [gameState, setGameState] = useState<GameState>('intro');
+  const [sessionLength, setSessionLength] = useState<number>(0);
   const [selectedCharacters, setSelectedCharacters] = useState<Character[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [score, setScore] = useState(0);
@@ -139,11 +139,12 @@ export function CircleSorter({ onBack }: CircleSorterProps) {
   const getCircleLabel = (circle: Circle) => (t as any)[circle.labelKey] || circle.labelKey;
   const getCircleDescription = (circle: Circle) => (t as any)[circle.descriptionKey] || circle.descriptionKey;
 
-  const startGame = (length: number) => {
+  const startGame = () => {
+    const randomLength = Math.floor(Math.random() * 4) + 5; // Random 5-8
     const shuffled = [...characterPool].sort(() => Math.random() - 0.5);
-    const selected = shuffled.slice(0, length);
+    const selected = shuffled.slice(0, randomLength);
     setSelectedCharacters(selected);
-    setSessionLength(length);
+    setSessionLength(randomLength);
     setCurrentIndex(0);
     setScore(0);
     setGameState('playing');
@@ -214,8 +215,8 @@ export function CircleSorter({ onBack }: CircleSorterProps) {
     }
   };
 
-  // Setup Screen
-  if (gameState === 'setup') {
+  // Intro / Learning Screen
+  if (gameState === 'intro') {
     return (
       <div className="min-h-screen bg-gradient-to-b from-purple-50 to-blue-50 p-4 md:p-8 flex items-center justify-center">
         <button
@@ -225,74 +226,64 @@ export function CircleSorter({ onBack }: CircleSorterProps) {
           <ArrowLeft className="w-6 h-6" />
         </button>
 
-        <div className="max-w-2xl w-full">
-          <div className="text-center mb-8">
-            <div className="text-8xl mb-6">🎯</div>
-            <h2 className="mb-4 text-purple-700">{t.relationshipCircles}</h2>
-            <p className="text-xl text-gray-700 mb-2">{t.sortPeopleIntoCircles}</p>
-            <p className="text-gray-600">{t.choosePeopleToSort}</p>
-          </div>
+        <div className="max-w-4xl w-full text-center">
+            <h2 className="text-4xl font-bold text-purple-700 mb-8">{t.letsLearnFirst}</h2>
+            <p className="text-xl text-gray-600 mb-8">{t.learnAboutCircles}</p>
 
-          <div className="bg-white rounded-3xl p-8 shadow-xl mb-8">
-            <h3 className="text-center mb-6">{t.chooseGameLength}</h3>
-            
-            <div className="grid grid-cols-3 gap-4 mb-8">
-              {[5, 10, 15].map((length) => (
-                <button
-                  key={length}
-                  onClick={() => setSessionLength(length)}
-                  className={`p-6 rounded-2xl border-4 transition-all hover:scale-105 ${
-                    sessionLength === length
-                      ? 'border-purple-500 bg-purple-50 shadow-lg'
-                      : 'border-gray-300 bg-white hover:border-purple-300'
-                  }`}
-                >
-                  <div className="text-5xl mb-2">{length}</div>
-                  <p className="text-sm text-gray-600">{t.people}</p>
-                </button>
-              ))}
+          <div className="grid md:grid-cols-2 gap-8 mb-12">
+            {/* Close Circle */}
+            <div className="bg-white rounded-3xl p-8 shadow-xl border-4 border-blue-200">
+              <div className="bg-blue-100 w-32 h-32 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-6xl">👨‍👩‍👧‍👦</span>
+              </div>
+              <h3 className="text-2xl font-bold text-blue-600 mb-2 text-center">{t.closeCircle}</h3>
+              <p className="text-gray-600 text-center">{t.closeCircleDesc}</p>
+              <Heart className="w-12 h-12 text-blue-500 mx-auto mt-4" />
             </div>
 
-            <button
-              onClick={() => startGame(sessionLength)}
-              className="w-full py-6 bg-purple-500 text-white rounded-2xl hover:bg-purple-600 transition-all hover:scale-105 text-xl"
-            >
-              {t.startGame}
-            </button>
+            {/* Far Circle */}
+            <div className="bg-white rounded-3xl p-8 shadow-xl border-4 border-red-200">
+              <div className="bg-red-100 w-32 h-32 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-6xl">👤</span>
+              </div>
+              <h3 className="text-2xl font-bold text-red-600 mb-2 text-center">{t.farCircle}</h3>
+              <p className="text-gray-600 text-center">{t.farCircleDesc}</p>
+              <AlertCircle className="w-12 h-12 text-red-500 mx-auto mt-4" />
+            </div>
           </div>
 
-          <div className="bg-blue-50 rounded-2xl p-6 border-2 border-blue-200">
-            <h4 className="mb-4 text-blue-800 text-xl font-bold">{t.colorGuide}</h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {/* Color Guide */}
+          <div className="bg-blue-50 rounded-2xl p-6 border-2 border-blue-200 mb-8">
+            <h4 className="mb-4 text-blue-800 text-xl font-bold text-center">{t.colorGuide}</h4>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
               {circles.map((circle) => {
                 const IconComponent = circle.icon;
                 return (
                   <div 
                     key={circle.id} 
-                    className="flex items-center gap-3 p-3 rounded-xl bg-white border-2 transition-all hover:shadow-md"
+                    className="flex items-center gap-2 p-2 rounded-xl bg-white border-2"
                     style={{ borderColor: circle.color }}
                   >
                     <div 
-                      className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 shadow-md"
-                      style={{ backgroundColor: circle.lightColor, border: `3px solid ${circle.color}` }}
+                      className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
+                      style={{ backgroundColor: circle.lightColor, border: `2px solid ${circle.color}` }}
                     >
-                      <IconComponent className="w-6 h-6" style={{ color: circle.color }} />
+                      <IconComponent className="w-5 h-5" style={{ color: circle.color }} />
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <div 
-                          className="w-6 h-6 rounded-full border-2 flex-shrink-0"
-                          style={{ backgroundColor: circle.color, borderColor: circle.color }}
-                        />
-                        <strong className="text-lg" style={{ color: circle.color }}>{getCircleLabel(circle)}</strong>
-                      </div>
-                      <p className="text-sm text-gray-600">{getCircleDescription(circle)}</p>
-                    </div>
+                    <strong className="text-sm" style={{ color: circle.color }}>{getCircleLabel(circle)}</strong>
                   </div>
                 );
               })}
             </div>
           </div>
+
+          <button
+            onClick={() => startGame()}
+            className="px-12 py-6 bg-purple-500 text-white rounded-full hover:bg-purple-600 transition-all hover:scale-105 text-2xl font-bold shadow-lg flex items-center justify-center gap-3 mx-auto"
+          >
+            <PlayCircle className="w-8 h-8" />
+            {t.startGame}
+          </button>
         </div>
       </div>
     );

@@ -12,6 +12,7 @@ import { WhatWouldYouDo } from './components/WhatWouldYouDo';
 import { PermissionRequest } from './components/PermissionRequest';
 import { ParentSettings } from './components/ParentSettings';
 import { LanguageSelector } from './components/LanguageSelector';
+import { OnboardingTutorial } from './components/OnboardingTutorial';
 import { useTranslation } from './utils/translations';
 
 type Screen = 'main' | 'module1' | 'module2' | 'module3' | 
@@ -22,6 +23,7 @@ export default function App() {
   const [currentScreen, setCurrentScreen] = useState<Screen>('main');
   const [showPermissions, setShowPermissions] = useState(false);
   const [showLanguageSelect, setShowLanguageSelect] = useState(false);
+  const [showTutorial, setShowTutorial] = useState(false);
   const t = useTranslation();
 
   useEffect(() => {
@@ -45,12 +47,24 @@ export default function App() {
     const hasShownPermissions = localStorage.getItem('permissionsShown') === 'true';
     if (!hasShownPermissions) {
       setShowPermissions(true);
+    } else {
+      // Check if tutorial needs to be shown
+      const tutorialComplete = localStorage.getItem('tutorialComplete') === 'true';
+      if (!tutorialComplete) {
+        setShowTutorial(true);
+      }
     }
   };
 
   const handlePermissionComplete = (granted: boolean) => {
     localStorage.setItem('permissionsShown', 'true');
     setShowPermissions(false);
+    
+    // Check if tutorial needs to be shown
+    const tutorialComplete = localStorage.getItem('tutorialComplete') === 'true';
+    if (!tutorialComplete) {
+      setShowTutorial(true);
+    }
     
     if (granted) {
       // Try to resume audio context if available
@@ -88,8 +102,16 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-purple-50">
+      {/* Onboarding Tutorial Overlay */}
+      {showTutorial && (
+        <OnboardingTutorial 
+          onComplete={() => setShowTutorial(false)}
+          currentScreen={currentScreen}
+        />
+      )}
+
       {currentScreen === 'main' && (
-        <MainMenu onNavigate={handleNavigate} />
+        <MainMenu onNavigate={handleNavigate} onShowTutorial={() => setShowTutorial(true)} />
       )}
       
       {currentScreen === 'module1' && (

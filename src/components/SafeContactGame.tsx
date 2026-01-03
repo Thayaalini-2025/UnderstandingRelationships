@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowLeft, Check, X, Star } from 'lucide-react';
+import { ArrowLeft, Check, X, Star, PlayCircle } from 'lucide-react';
 import { getCharacterImage } from '../utils/imageUtils';
 import { useLanguage } from '../context/LanguageContext';
 import { useTranslation } from '../utils/translations';
@@ -205,17 +205,28 @@ const scenarios: Scenario[] = [
 ];
 
 export function SafeContactGame({ onBack }: SafeContactGameProps) {
+  const [gameState, setGameState] = useState<'setup' | 'playing' | 'complete'>('setup');
+  const [selectedScenarios, setSelectedScenarios] = useState<Scenario[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [score, setScore] = useState(0);
   const [feedback, setFeedback] = useState<'correct' | 'incorrect' | null>(null);
-  const [gameComplete, setGameComplete] = useState(false);
   const { language } = useLanguage();
   const t = useTranslation();
 
-  const currentScenario = scenarios[currentIndex];
+  const startGame = () => {
+    const randomLength = Math.floor(Math.random() * 4) + 5; // Random 5-8
+    const shuffled = [...scenarios].sort(() => Math.random() - 0.5);
+    const selected = shuffled.slice(0, randomLength);
+    setSelectedScenarios(selected);
+    setCurrentIndex(0);
+    setScore(0);
+    setGameState('playing');
+  };
+
+  const currentScenario = selectedScenarios[currentIndex];
 
   const handleChoice = (userSaysIsSafe: boolean) => {
-    if (feedback) return;
+    if (feedback || !currentScenario) return;
 
     const isCorrect = userSaysIsSafe === currentScenario.isSafe;
     
@@ -230,10 +241,10 @@ export function SafeContactGame({ onBack }: SafeContactGameProps) {
 
     setTimeout(() => {
       setFeedback(null);
-      if (currentIndex < scenarios.length - 1) {
+      if (currentIndex < selectedScenarios.length - 1) {
         setCurrentIndex(currentIndex + 1);
       } else {
-        setGameComplete(true);
+        setGameState('complete');
       }
     }, 3000);
   };
@@ -271,8 +282,8 @@ export function SafeContactGame({ onBack }: SafeContactGameProps) {
     return circles[color];
   };
 
-  if (gameComplete) {
-    const percentage = Math.round((score / scenarios.length) * 100);
+  if (gameState === 'complete') {
+    const percentage = Math.round((score / selectedScenarios.length) * 100);
     const stars = percentage >= 90 ? 3 : percentage >= 70 ? 2 : 1;
 
     return (
@@ -280,7 +291,7 @@ export function SafeContactGame({ onBack }: SafeContactGameProps) {
         <div className="text-center max-w-2xl">
           <div className="text-8xl mb-6">🎉</div>
           <h2 className="mb-4 text-purple-700">{t.greatJob}</h2>
-          <p className="text-2xl mb-4">{t.youGot} {score} {t.outOf} {scenarios.length}</p>
+          <p className="text-2xl mb-4">{t.youGot} {score} {t.outOf} {selectedScenarios.length}</p>
           
           <div className="flex justify-center gap-2 mb-8">
             {[1, 2, 3].map((star) => (
@@ -312,9 +323,7 @@ export function SafeContactGame({ onBack }: SafeContactGameProps) {
           <div className="flex gap-4 justify-center">
             <button
               onClick={() => {
-                setCurrentIndex(0);
-                setScore(0);
-                setGameComplete(false);
+                startGame();
               }}
               className="px-8 py-4 bg-purple-500 text-white rounded-full hover:bg-purple-600 transition-all hover:scale-105"
             >
@@ -332,6 +341,60 @@ export function SafeContactGame({ onBack }: SafeContactGameProps) {
     );
   }
 
+  // Setup Screen
+  if (gameState === 'setup') {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-purple-50 to-pink-50 p-4 md:p-8 flex items-center justify-center">
+        <button
+          onClick={onBack}
+          className="absolute top-6 left-6 p-4 bg-white rounded-full shadow-lg hover:shadow-xl transition-all hover:scale-105"
+        >
+          <ArrowLeft className="w-6 h-6" />
+        </button>
+
+        <div className="max-w-4xl w-full text-center">
+            <h2 className="text-4xl font-bold text-purple-700 mb-8">{t.letsLearnFirst}</h2>
+            <p className="text-xl text-gray-600 mb-8">{t.learnAboutSafeTouch}</p>
+
+          <div className="grid md:grid-cols-2 gap-8 mb-12">
+            {/* Safe Touch */}
+            <div className="bg-white rounded-3xl p-8 shadow-xl border-4 border-green-200">
+              <div className="bg-green-100 w-32 h-32 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-6xl">🤗</span>
+              </div>
+              <h3 className="text-2xl font-bold text-green-600 mb-2 text-center">{t.safe}</h3>
+              <p className="text-gray-600 text-center">{t.safeTouchDesc}</p>
+              <Check className="w-12 h-12 text-green-500 mx-auto mt-4" />
+            </div>
+
+            {/* Unsafe Touch */}
+            <div className="bg-white rounded-3xl p-8 shadow-xl border-4 border-red-200">
+              <div className="bg-red-100 w-32 h-32 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-6xl">✋</span>
+              </div>
+              <h3 className="text-2xl font-bold text-red-600 mb-2 text-center">{t.notSafe}</h3>
+              <p className="text-gray-600 text-center">{t.unsafeTouchDesc}</p>
+              <X className="w-12 h-12 text-red-500 mx-auto mt-4" />
+            </div>
+          </div>
+
+          <button
+            onClick={() => startGame()}
+            className="px-12 py-6 bg-purple-500 text-white rounded-full hover:bg-purple-600 transition-all hover:scale-105 text-2xl font-bold shadow-lg flex items-center justify-center gap-3 mx-auto"
+          >
+            <PlayCircle className="w-8 h-8" />
+            {t.startGame}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Guard against no current scenario
+  if (!currentScenario) {
+    return null;
+  }
+
   const circleInfo = getCircleInfo(currentScenario.circleColor);
 
   return (
@@ -344,7 +407,7 @@ export function SafeContactGame({ onBack }: SafeContactGameProps) {
       </button>
 
       <div className="absolute top-6 right-6 bg-white rounded-full px-6 py-3 shadow-lg z-10">
-        <span>{t.question} {currentIndex + 1}/{scenarios.length}</span>
+        <span>{t.question} {currentIndex + 1}/{selectedScenarios.length}</span>
       </div>
 
       <div className="max-w-3xl mx-auto pt-20">

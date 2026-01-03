@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowLeft, ThumbsUp, ThumbsDown, Users, RotateCcw, Star } from 'lucide-react';
+import { ArrowLeft, ThumbsUp, ThumbsDown, Users, RotateCcw, Star, PlayCircle, Check, X } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { useTranslation } from '../utils/translations';
 
@@ -7,7 +7,7 @@ interface ScenarioQuizProps {
   onBack: () => void;
 }
 
-type GameState = 'setup' | 'choice' | 'feedback-incorrect' | 'feedback-correct' | 'complete';
+type GameState = 'intro' | 'setup' | 'choice' | 'feedback-incorrect' | 'feedback-correct' | 'complete';
 type Language = 'en' | 'ms' | 'zh';
 
 interface Choice {
@@ -219,13 +219,24 @@ const scenarios: Scenario[] = [
 ];
 
 export function ScenarioQuiz({ onBack }: ScenarioQuizProps) {
+  const [selectedScenarios, setSelectedScenarios] = useState<Scenario[]>([]);
   const [currentScenarioIndex, setCurrentScenarioIndex] = useState(0);
-  const [gameState, setGameState] = useState<GameState>('setup');
+  const [gameState, setGameState] = useState<GameState>('intro');
   const [score, setScore] = useState(0);
   const { language } = useLanguage();
   const t = useTranslation();
 
-  const currentScenario = scenarios[currentScenarioIndex];
+  const startGame = () => {
+    const randomLength = Math.floor(Math.random() * 4) + 5; // Random 5-8
+    const shuffled = [...scenarios].sort(() => Math.random() - 0.5);
+    const selected = shuffled.slice(0, randomLength);
+    setSelectedScenarios(selected);
+    setCurrentScenarioIndex(0);
+    setScore(0);
+    setGameState('setup');
+  };
+
+  const currentScenario = selectedScenarios[currentScenarioIndex];
 
   const handleChoice = (safe: boolean) => {
     if (safe) {
@@ -243,7 +254,7 @@ export function ScenarioQuiz({ onBack }: ScenarioQuizProps) {
   };
 
   const handleNextScenario = () => {
-    if (currentScenarioIndex < scenarios.length - 1) {
+    if (currentScenarioIndex < selectedScenarios.length - 1) {
       setCurrentScenarioIndex(currentScenarioIndex + 1);
       setGameState('setup');
     } else {
@@ -301,7 +312,7 @@ export function ScenarioQuiz({ onBack }: ScenarioQuizProps) {
   };
 
   if (gameState === 'complete') {
-    const percentage = Math.round((score / scenarios.length) * 100);
+    const percentage = Math.round((score / selectedScenarios.length) * 100);
     const stars = percentage >= 90 ? 3 : percentage >= 70 ? 2 : 1;
 
     return (
@@ -309,7 +320,7 @@ export function ScenarioQuiz({ onBack }: ScenarioQuizProps) {
         <div className="text-center max-w-2xl">
           <div className="text-8xl mb-8">🎉</div>
           <h2 className="mb-4 text-green-700">{t.greatJob}</h2>
-          <p className="text-2xl mb-4">{t.youGot} {score} {t.outOf} {scenarios.length}!</p>
+          <p className="text-2xl mb-4">{t.youGot} {score} {t.outOf} {selectedScenarios.length}!</p>
           
           <div className="flex justify-center gap-2 mb-8">
             {[1, 2, 3].map((star) => (
@@ -323,9 +334,7 @@ export function ScenarioQuiz({ onBack }: ScenarioQuizProps) {
           <div className="flex gap-4 justify-center">
             <button
               onClick={() => {
-                setCurrentScenarioIndex(0);
-                setScore(0);
-                setGameState('setup');
+                startGame();
               }}
               className="px-8 py-4 bg-green-500 text-white rounded-full hover:bg-green-600 transition-all hover:scale-105 flex items-center gap-2"
             >
@@ -344,6 +353,60 @@ export function ScenarioQuiz({ onBack }: ScenarioQuizProps) {
     );
   }
 
+  // Intro Screen
+  if (gameState === 'intro') {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-green-50 to-blue-50 p-4 md:p-8 flex items-center justify-center">
+        <button
+          onClick={onBack}
+          className="absolute top-6 left-6 p-4 bg-white rounded-full shadow-lg hover:shadow-xl transition-all hover:scale-105"
+        >
+          <ArrowLeft className="w-6 h-6" />
+        </button>
+
+        <div className="max-w-4xl w-full text-center">
+            <h2 className="text-4xl font-bold text-green-700 mb-8">{t.letsLearnFirst}</h2>
+            <p className="text-xl text-gray-600 mb-8">{t.practiceStayingSafe}</p>
+
+          <div className="grid md:grid-cols-2 gap-8 mb-12">
+            {/* Safe Choices */}
+            <div className="bg-white rounded-3xl p-8 shadow-xl border-4 border-green-200">
+              <div className="bg-green-100 w-32 h-32 rounded-full flex items-center justify-center mx-auto mb-4">
+                <ThumbsUp className="w-16 h-16 text-green-600" />
+              </div>
+              <h3 className="text-2xl font-bold text-green-600 mb-2 text-center">{t.safe}</h3>
+              <p className="text-gray-600 text-center">{t.safeChoiceDesc}</p>
+              <Check className="w-12 h-12 text-green-500 mx-auto mt-4" />
+            </div>
+
+            {/* Unsafe Choices */}
+            <div className="bg-white rounded-3xl p-8 shadow-xl border-4 border-red-200">
+              <div className="bg-red-100 w-32 h-32 rounded-full flex items-center justify-center mx-auto mb-4">
+                <ThumbsDown className="w-16 h-16 text-red-600" />
+              </div>
+              <h3 className="text-2xl font-bold text-red-600 mb-2 text-center">{t.notSafe}</h3>
+              <p className="text-gray-600 text-center">{t.unsafeChoiceDesc}</p>
+              <X className="w-12 h-12 text-red-500 mx-auto mt-4" />
+            </div>
+          </div>
+
+          <button
+            onClick={() => startGame()}
+            className="px-12 py-6 bg-green-500 text-white rounded-full hover:bg-green-600 transition-all hover:scale-105 text-2xl font-bold shadow-lg flex items-center justify-center gap-3 mx-auto"
+          >
+            <PlayCircle className="w-8 h-8" />
+            {t.startGame}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Guard against no current scenario
+  if (!currentScenario) {
+    return null;
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-green-50 to-blue-50 p-4 md:p-8">
       <button
@@ -354,7 +417,7 @@ export function ScenarioQuiz({ onBack }: ScenarioQuizProps) {
       </button>
 
       <div className="absolute top-6 right-6 bg-white rounded-full px-6 py-3 shadow-lg z-10">
-        <span>{t.scenario} {currentScenarioIndex + 1}/{scenarios.length}</span>
+        <span>{t.scenario} {currentScenarioIndex + 1}/{selectedScenarios.length}</span>
       </div>
 
       <div className="max-w-4xl mx-auto pt-20">

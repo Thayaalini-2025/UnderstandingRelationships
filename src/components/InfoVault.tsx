@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowLeft, Lock, Share2, Star, Home, RotateCcw, Check, X, Volume2, Shield, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, Lock, Share2, Star, Home, RotateCcw, Check, X, Volume2, Shield, AlertTriangle, PlayCircle } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { useTranslation } from '../utils/translations';
 
@@ -287,7 +287,7 @@ const infoPool: InfoItem[] = [
 
 export function InfoVault({ onBack }: InfoVaultProps) {
   const [gameState, setGameState] = useState<GameState>('setup');
-  const [sessionLength, setSessionLength] = useState<number>(10);
+  const [sessionLength, setSessionLength] = useState<number>(0);
   const [selectedItems, setSelectedItems] = useState<InfoItem[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [score, setScore] = useState(0);
@@ -297,11 +297,12 @@ export function InfoVault({ onBack }: InfoVaultProps) {
   const { language } = useLanguage();
   const t = useTranslation();
 
-  const startGame = (length: number) => {
+  const startGame = () => {
+    const randomLength = Math.floor(Math.random() * 4) + 5; // Random 5-8
     const shuffled = [...infoPool].sort(() => Math.random() - 0.5);
-    const selected = shuffled.slice(0, length);
+    const selected = shuffled.slice(0, randomLength);
     setSelectedItems(selected);
-    setSessionLength(length);
+    setSessionLength(randomLength);
     setCurrentIndex(0);
     setScore(0);
     setGameState('playing');
@@ -385,59 +386,43 @@ export function InfoVault({ onBack }: InfoVaultProps) {
           <ArrowLeft className="w-6 h-6" />
         </button>
 
-        <div className="max-w-2xl w-full">
-          <div className="text-center mb-8">
-            <div className="text-8xl mb-6">🔒</div>
-            <h2 className="mb-4 text-blue-700">{t.theInfoVault}</h2>
-            <p className="text-xl text-gray-700 mb-2">{t.learnWhatToShare}</p>
-            <p className="text-gray-600">{t.chooseItemsToSort}</p>
-          </div>
+        <div className="max-w-4xl w-full text-center">
+            <h2 className="text-4xl font-bold text-blue-700 mb-8">{t.letsLearnFirst}</h2>
+            <p className="text-xl text-gray-600 mb-8">{t.learnWhatToShare}</p>
 
-          <div className="bg-white rounded-3xl p-8 shadow-xl mb-8">
-            <h3 className="text-center mb-6">{t.chooseGameLength}</h3>
-            
-            <div className="grid grid-cols-3 gap-4 mb-8">
-              {[5, 10, 15].map((length) => (
-                <button
-                  key={length}
-                  onClick={() => setSessionLength(length)}
-                  className={`p-6 rounded-2xl border-4 transition-all hover:scale-105 ${
-                    sessionLength === length
-                      ? 'border-blue-500 bg-blue-50 shadow-lg'
-                      : 'border-gray-300 bg-white hover:border-blue-300'
-                  }`}
-                >
-                  <div className="text-5xl mb-2">{length}</div>
-                  <p className="text-sm text-gray-600">{t.items}</p>
-                </button>
-              ))}
+          <div className="grid md:grid-cols-2 gap-8 mb-12">
+            {/* Safe to Share */}
+            <div className="bg-white rounded-3xl p-8 shadow-xl border-4 border-green-200">
+              <div className="bg-green-100 w-32 h-32 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Share2 className="w-16 h-16 text-green-600" />
+              </div>
+              <h3 className="text-2xl font-bold text-green-600 mb-2 text-center">{t.safeToShare}</h3>
+              <p className="text-gray-600 text-center">{t.thisIsOkayToTell}</p>
+              <div className="mt-4 text-center">
+                <span className="text-3xl">🎨 👋 📛</span>
+              </div>
             </div>
 
-            <button
-              onClick={() => startGame(sessionLength)}
-              className="w-full py-6 bg-blue-500 text-white rounded-2xl hover:bg-blue-600 transition-all hover:scale-105 text-xl"
-            >
-              {t.startGame}
-            </button>
+            {/* Keep Secret */}
+            <div className="bg-white rounded-3xl p-8 shadow-xl border-4 border-red-200">
+              <div className="bg-red-100 w-32 h-32 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Lock className="w-16 h-16 text-red-600" />
+              </div>
+              <h3 className="text-2xl font-bold text-red-600 mb-2 text-center">{t.keepSecret}</h3>
+              <p className="text-gray-600 text-center">{t.thisShouldStayPrivate}</p>
+              <div className="mt-4 text-center">
+                <span className="text-3xl">🏠 🔑 📱</span>
+              </div>
+            </div>
           </div>
 
-          <div className="bg-green-50 rounded-2xl p-6 border-2 border-green-200">
-            <h4 className="mb-3 text-green-800">{t.howToPlay}</h4>
-            <ul className="space-y-2 text-green-700">
-              <li className="flex items-start gap-2">
-                <Share2 className="w-5 h-5 mt-1 text-green-600" />
-                <span><strong>{t.safeToShare}:</strong> {t.thisIsOkayToTell}</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <Lock className="w-5 h-5 mt-1 text-red-600" />
-                <span><strong>{t.keepSecret}:</strong> {t.thisShouldStayPrivate}</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <Shield className="w-5 h-5 mt-1 text-blue-600" />
-                <span>{t.whenInDoubt}</span>
-              </li>
-            </ul>
-          </div>
+          <button
+            onClick={() => startGame()}
+            className="px-12 py-6 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-all hover:scale-105 text-2xl font-bold shadow-lg flex items-center justify-center gap-3 mx-auto"
+          >
+            <PlayCircle className="w-8 h-8" />
+            {t.startGame}
+          </button>
         </div>
       </div>
     );

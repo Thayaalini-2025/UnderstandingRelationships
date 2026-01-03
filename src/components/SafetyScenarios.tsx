@@ -163,7 +163,7 @@ const scenarioPool: Scenario[] = [
 export function SafetyScenarios({ onBack }: SafetyScenariosProps) {
   const { language } = useLanguage();
   const [gameState, setGameState] = useState<GameState>('intro');
-  const [sessionLength] = useState<number>(5); // Fixed to 5 questions
+  const [sessionLength, setSessionLength] = useState<number>(0);
   const [selectedScenarios, setSelectedScenarios] = useState<Scenario[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [score, setScore] = useState(0);
@@ -187,15 +187,17 @@ export function SafetyScenarios({ onBack }: SafetyScenariosProps) {
   }, []);
 
   const startSession = () => {
-    // Fill pool with duplicates if not enough questions for demo (since we only defined 4 fully translated)
+    const randomLength = Math.floor(Math.random() * 4) + 5; // Random 5-8
+    // Fill pool with duplicates if not enough questions
     let pool = [...scenarioPool];
-    while(pool.length < sessionLength) {
+    while(pool.length < randomLength) {
         pool = [...pool, ...scenarioPool];
     }
     
     const shuffled = pool.sort(() => Math.random() - 0.5);
-    const selected = shuffled.slice(0, sessionLength);
+    const selected = shuffled.slice(0, randomLength);
     setSelectedScenarios(selected);
+    setSessionLength(randomLength);
     setCurrentIndex(0);
     setScore(0);
     setGameState('playing');

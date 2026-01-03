@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowLeft, Lock, Users, Star } from 'lucide-react';
+import { ArrowLeft, Lock, Users, Star, PlayCircle } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { useTranslation } from '../utils/translations';
 
@@ -44,16 +44,27 @@ const items: Item[] = [
 export function PrivatePublicSorting({ onBack }: PrivatePublicSortingProps) {
   const { language } = useLanguage();
   const t = useTranslation();
+  const [gameState, setGameState] = useState<'setup' | 'playing' | 'complete'>('setup');
+  const [selectedItems, setSelectedItems] = useState<Item[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [score, setScore] = useState(0);
   const [feedback, setFeedback] = useState<'correct' | 'incorrect' | null>(null);
-  const [gameComplete, setGameComplete] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<'private' | 'public' | null>(null);
 
-  const currentItem = items[currentIndex];
+  const startGame = () => {
+    const randomLength = Math.floor(Math.random() * 4) + 5; // Random 5-8
+    const shuffled = [...items].sort(() => Math.random() - 0.5);
+    const selected = shuffled.slice(0, randomLength);
+    setSelectedItems(selected);
+    setCurrentIndex(0);
+    setScore(0);
+    setGameState('playing');
+  };
+
+  const currentItem = selectedItems[currentIndex];
 
   const handleCategorySelect = (category: 'private' | 'public') => {
-    if (feedback || selectedCategory) return;
+    if (feedback || selectedCategory || !currentItem) return;
 
     setSelectedCategory(category);
     const isCorrect = (category === 'private') === currentItem.isPrivate;
@@ -70,10 +81,10 @@ export function PrivatePublicSorting({ onBack }: PrivatePublicSortingProps) {
     setTimeout(() => {
       setFeedback(null);
       setSelectedCategory(null);
-      if (currentIndex < items.length - 1) {
+      if (currentIndex < selectedItems.length - 1) {
         setCurrentIndex(currentIndex + 1);
       } else {
-        setGameComplete(true);
+        setGameState('complete');
       }
     }, 2500);
   };
@@ -100,8 +111,8 @@ export function PrivatePublicSorting({ onBack }: PrivatePublicSortingProps) {
     }
   };
 
-  if (gameComplete) {
-    const percentage = Math.round((score / items.length) * 100);
+  if (gameState === 'complete') {
+    const percentage = Math.round((score / selectedItems.length) * 100);
     const stars = percentage >= 90 ? 3 : percentage >= 70 ? 2 : 1;
 
     return (
@@ -109,7 +120,7 @@ export function PrivatePublicSorting({ onBack }: PrivatePublicSortingProps) {
         <div className="text-center max-w-2xl">
           <div className="text-8xl mb-6">🎉</div>
           <h2 className="mb-4 text-green-700">{t.pp_completeTitle}</h2>
-          <p className="text-2xl mb-4">{t.pp_completeScore.replace('{score}', String(score)).replace('{total}', String(items.length))}</p>
+          <p className="text-2xl mb-4">{t.pp_completeScore.replace('{score}', String(score)).replace('{total}', String(selectedItems.length))}</p>
           
           <div className="flex justify-center gap-2 mb-8">
             {[1, 2, 3].map((star) => (
@@ -137,9 +148,7 @@ export function PrivatePublicSorting({ onBack }: PrivatePublicSortingProps) {
           <div className="flex gap-4 justify-center">
             <button
               onClick={() => {
-                setCurrentIndex(0);
-                setScore(0);
-                setGameComplete(false);
+                startGame();
               }}
               className="px-8 py-4 bg-green-500 text-white rounded-full hover:bg-green-600 transition-all hover:scale-105"
             >
@@ -157,6 +166,64 @@ export function PrivatePublicSorting({ onBack }: PrivatePublicSortingProps) {
     );
   }
 
+  // Setup Screen
+  if (gameState === 'setup') {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-green-50 to-blue-50 p-4 md:p-8 flex items-center justify-center">
+        <button
+          onClick={onBack}
+          className="absolute top-6 left-6 p-4 bg-white rounded-full shadow-lg hover:shadow-xl transition-all hover:scale-105"
+        >
+          <ArrowLeft className="w-6 h-6" />
+        </button>
+
+        <div className="max-w-4xl w-full text-center">
+            <h2 className="text-4xl font-bold text-green-700 mb-8">{t.letsLearnFirst}</h2>
+            <p className="text-xl text-gray-600 mb-8">{t.learnAboutPrivatePublic}</p>
+
+          <div className="grid md:grid-cols-2 gap-8 mb-12">
+            {/* Private */}
+            <div className="bg-white rounded-3xl p-8 shadow-xl border-4 border-purple-200">
+              <div className="bg-purple-100 w-32 h-32 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Lock className="w-16 h-16 text-purple-600" />
+              </div>
+              <h3 className="text-2xl font-bold text-purple-600 mb-2 text-center">{t.privateLabel}</h3>
+              <p className="text-gray-600 text-center">{t.privateDesc}</p>
+              <div className="mt-4 text-center">
+                <span className="text-3xl">🏠 🔑 🛁</span>
+              </div>
+            </div>
+
+            {/* Public */}
+            <div className="bg-white rounded-3xl p-8 shadow-xl border-4 border-blue-200">
+              <div className="bg-blue-100 w-32 h-32 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Users className="w-16 h-16 text-blue-600" />
+              </div>
+              <h3 className="text-2xl font-bold text-blue-600 mb-2 text-center">{t.publicLabel}</h3>
+              <p className="text-gray-600 text-center">{t.publicDesc}</p>
+              <div className="mt-4 text-center">
+                <span className="text-3xl">👋 🏞️ 📛</span>
+              </div>
+            </div>
+          </div>
+
+          <button
+            onClick={() => startGame()}
+            className="px-12 py-6 bg-green-500 text-white rounded-full hover:bg-green-600 transition-all hover:scale-105 text-2xl font-bold shadow-lg flex items-center justify-center gap-3 mx-auto"
+          >
+            <PlayCircle className="w-8 h-8" />
+            {t.startGame}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Guard against no current item
+  if (!currentItem) {
+    return null;
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-green-50 to-blue-50 p-4 md:p-8">
       <button
@@ -167,7 +234,7 @@ export function PrivatePublicSorting({ onBack }: PrivatePublicSortingProps) {
       </button>
 
       <div className="absolute top-6 right-6 bg-white rounded-full px-6 py-3 shadow-lg z-10">
-        <span>{currentIndex + 1}/{items.length}</span>
+        <span>{currentIndex + 1}/{selectedItems.length}</span>
       </div>
 
       <div className="max-w-3xl mx-auto pt-20">

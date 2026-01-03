@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowLeft, Check, X, Star, Home, RotateCcw, Shield, Volume2 } from 'lucide-react';
+import { ArrowLeft, Check, X, Star, Home, RotateCcw, Shield, Volume2, PlayCircle } from 'lucide-react';
 import { useLanguage, Language } from '../context/LanguageContext';
 import { useTranslation } from '../utils/translations';
 
@@ -407,7 +407,7 @@ export function SpaceBubble({ onBack }: SpaceBubbleProps) {
   const { language } = useLanguage();
   const t = useTranslation();
   const [gameState, setGameState] = useState<GameState>('setup');
-  const [sessionLength, setSessionLength] = useState<number>(10);
+  const [sessionLength, setSessionLength] = useState<number>(0);
   const [selectedScenarios, setSelectedScenarios] = useState<Scenario[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [score, setScore] = useState(0);
@@ -415,11 +415,12 @@ export function SpaceBubble({ onBack }: SpaceBubbleProps) {
   const [userChoice, setUserChoice] = useState<'too-close' | 'okay' | null>(null);
   const [isCorrect, setIsCorrect] = useState(false);
 
-  const startGame = (length: number) => {
+  const startGame = () => {
+    const randomLength = Math.floor(Math.random() * 4) + 5; // Random 5-8
     const shuffled = [...scenarioPool].sort(() => Math.random() - 0.5);
-    const selected = shuffled.slice(0, length);
+    const selected = shuffled.slice(0, randomLength);
     setSelectedScenarios(selected);
-    setSessionLength(length);
+    setSessionLength(randomLength);
     setCurrentIndex(0);
     setScore(0);
     setGameState('playing');
@@ -501,59 +502,39 @@ export function SpaceBubble({ onBack }: SpaceBubbleProps) {
           <ArrowLeft className="w-6 h-6" />
         </button>
 
-        <div className="max-w-2xl w-full">
-          <div className="text-center mb-8">
-            <div className="text-8xl mb-6">🫧</div>
-            <h2 className="mb-4 text-orange-700">{t.spaceBubble}</h2>
-            <p className="text-xl text-gray-700 mb-2">{t.learnAboutPersonalSpace}</p>
-            <p className="text-gray-600">{t.chooseScenariosToSort}</p>
-          </div>
+        <div className="max-w-4xl w-full text-center">
+            <h2 className="text-4xl font-bold text-orange-700 mb-8">{t.letsLearnFirst}</h2>
+            <p className="text-xl text-gray-600 mb-8">{t.learnAboutPersonalSpace}</p>
 
-          <div className="bg-white rounded-3xl p-8 shadow-xl mb-8">
-            <h3 className="text-center mb-6">{t.chooseGameLength}</h3>
-            
-            <div className="grid grid-cols-3 gap-4 mb-8">
-              {[5, 10, 15].map((length) => (
-                <button
-                  key={length}
-                  onClick={() => setSessionLength(length)}
-                  className={`p-6 rounded-2xl border-4 transition-all hover:scale-105 ${
-                    sessionLength === length
-                      ? 'border-orange-500 bg-orange-50 shadow-lg'
-                      : 'border-gray-300 bg-white hover:border-orange-300'
-                  }`}
-                >
-                  <div className="text-5xl mb-2">{length}</div>
-                  <p className="text-sm text-gray-600">{t.scenarios}</p>
-                </button>
-              ))}
+          <div className="grid md:grid-cols-2 gap-8 mb-12">
+            {/* Just Right */}
+            <div className="bg-white rounded-3xl p-8 shadow-xl border-4 border-green-200">
+              <div className="bg-green-100 w-32 h-32 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-6xl">👨‍👩‍👧</span>
+              </div>
+              <h3 className="text-2xl font-bold text-green-600 mb-2 text-center">{t.justRight}</h3>
+              <p className="text-gray-600 text-center">{t.familyAndFriendsCanBeClose}</p>
+              <Check className="w-12 h-12 text-green-500 mx-auto mt-4" />
             </div>
 
-            <button
-              onClick={() => startGame(sessionLength)}
-              className="w-full py-6 bg-orange-500 text-white rounded-2xl hover:bg-orange-600 transition-all hover:scale-105 text-xl"
-            >
-              {t.startGame}
-            </button>
+            {/* Too Close */}
+            <div className="bg-white rounded-3xl p-8 shadow-xl border-4 border-red-200">
+              <div className="bg-red-100 w-32 h-32 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-6xl">🧑</span>
+              </div>
+              <h3 className="text-2xl font-bold text-red-600 mb-2 text-center">{t.tooClose}</h3>
+              <p className="text-gray-600 text-center">{t.strangersAndPeopleWithout}</p>
+              <X className="w-12 h-12 text-red-500 mx-auto mt-4" />
+            </div>
           </div>
 
-          <div className="bg-blue-50 rounded-2xl p-6 border-2 border-blue-200">
-            <h4 className="mb-3 text-blue-800">{t.understandingPersonalSpace}:</h4>
-            <ul className="space-y-2 text-blue-700">
-              <li className="flex items-start gap-2">
-                <Shield className="w-5 h-5 mt-1 text-orange-600" />
-                <span><strong>{t.yourSpaceBubble}:</strong> {t.imagineABubble}</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <Check className="w-5 h-5 mt-1 text-green-600" />
-                <span><strong>{t.justRight}:</strong> {t.familyAndFriendsCanBeClose}</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <X className="w-5 h-5 mt-1 text-red-600" />
-                <span><strong>{t.tooClose}:</strong> {t.strangersAndPeopleWithout}</span>
-              </li>
-            </ul>
-          </div>
+          <button
+            onClick={() => startGame()}
+            className="px-12 py-6 bg-orange-500 text-white rounded-full hover:bg-orange-600 transition-all hover:scale-105 text-2xl font-bold shadow-lg flex items-center justify-center gap-3 mx-auto"
+          >
+            <PlayCircle className="w-8 h-8" />
+            {t.startGame}
+          </button>
         </div>
       </div>
     );
